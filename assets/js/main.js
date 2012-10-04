@@ -1,8 +1,8 @@
-(function( leaflet, $, undefined ) {
+( function( leaflet, $, undefined ) {
   
   var map = null;
 
-  leaflet.init = function() {
+  leaflet.init = function () {
 
     this.map = L.map('map').setView([47.6097, -122.3331], 13);
     
@@ -13,8 +13,8 @@
 
   };
 
-}( window.leaflet = window.leaflet || {}, jQuery));
+}( window.leaflet = window.leaflet || {}, jQuery ));
 
-$(document).ready(function() {
+$(document).ready( function () {
   leaflet.init();
 });
