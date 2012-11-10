@@ -33,9 +33,19 @@
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        // Custom initialization
+        // Custom initialization 
     }
     return self;
+}
+
+- (void) showSplashScreen
+{
+  CGRect screenBounds = [[UIScreen mainScreen] bounds];
+  // HACK: PhoneGap pre-2.2 does not support iphone5 splash image well, so we just skip it
+  if (screenBounds.size.height == 568) {
+    return;
+  }
+  [super showSplashScreen];
 }
 
 - (void) didReceiveMemoryWarning
