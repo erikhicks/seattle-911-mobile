@@ -1,5 +1,28 @@
 ( function( leaflet, $, undefined ) {
 
+  leaflet.assets = {
+    icons: {
+      black_icon:
+        L.icon({
+          iconUrl: 'assets/img/pin.png',
+          shadowUrl: 'assets/img/pin-shadow.png',
+          iconSize: [14, 29],
+          iconAnchor: [7, 29],
+          shadowSize: [25,18],
+          shadowAnchor: [0, 18]
+        }),
+      emergency_icon:
+        L.icon({
+          iconUrl: 'assets/img/pin-emergency.png',
+          shadowUrl: 'assets/img/pin-shadow.png',
+          iconSize: [24, 47],
+          iconAnchor: [7, 47],
+          shadowSize: [25,18],
+          shadowAnchor: [0, 18]
+        })
+    }
+  };
+
   leaflet.init = function () {
     console.log('init');
 
@@ -9,6 +32,8 @@
     this.map.element.width(document.clientWidth);
     this.map.element.height(document.body.clientHeight - $('#footer').height());
     this.myLocation = {};
+    this.events = [];
+    this.eventLayer = null;
 
     L.tileLayer('http://{s}.tile.cloudmade.com/5f8bd467aef94255bce0b1b60a59870c/22677@2x/256/{z}/{x}/{y}.png', this.mapOptions).addTo(this.map);
 
@@ -34,7 +59,9 @@
   };
 
   leaflet.getLocation = function() {
-    navigator.splashscreen.hide();
+    if (navigator.splashscreen) {
+      navigator.splashscreen.hide();
+    }
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(leaflet.processLocation, leaflet.locationError);
     }
@@ -46,25 +73,27 @@
 
     leaflet.map.setView(latLng, 16);
 
-    var black_icon = L.icon({
-      iconUrl: 'assets/img/pin.png',
-      shadowUrl: 'assets/img/pin-shadow.png',
-      iconSize: [14, 29],
-      iconAnchor: [7, 29],
-      shadowSize: [25,18],
-      shadowAnchor: [0, 18]
-    });
-
     if (leaflet.myLocation.marker) {
       leaflet.map.removeLayer(leaflet.myLocation.marker);
       leaflet.map.removeLayer(leaflet.myLocation.circle);
     }
 
-    leaflet.myLocation.marker = L.marker(latLng, {icon: black_icon});
     leaflet.myLocation.circle = L.circle(latLng, radius);
-
-    leaflet.myLocation.marker.addTo(leaflet.map);
+    leaflet.myLocation.marker = leaflet.placeMarker(latLng, {icon: leaflet.assets.icons.black_icon});
     leaflet.myLocation.circle.addTo(leaflet.map);
+  };
+
+  leaflet.placeMarker = function (latLng, options) {
+    var marker = L.marker(latLng, options);
+    marker.addTo(leaflet.map);
+    return marker;
+  };
+
+  leaflet.clearEvents = function () {
+    $('#eventList').empty();
+    if (leaflet.eventLayer) {
+      leaflet.map.removeLayer(leaflet.eventLayer);
+    }
   };
 
   leaflet.locationError = function (e) {
@@ -79,6 +108,11 @@
   };
 
   leaflet.processEvents = function (data) {
+    if (data.data) {
+      leaflet.clearEvents();
+      leaflet.eventLayer = new L.layerGroup();
+    }
+
     $.each(data.data, function(index, event) {
       var eventObject = {
         time: new Date(event[3] * 1000),
@@ -89,11 +123,17 @@
         lon: event[12]
       };
 
+      var latLng = new L.LatLng(eventObject.lat, eventObject.lon);
+      L.marker(latLng, {icon: leaflet.assets.icons.emergency_icon}).addTo(leaflet.eventLayer);
       logEvent(eventObject);
     });
+
+    leaflet.map.addLayer(leaflet.eventLayer);
   };
 
   logEvent = function (eventObject) {
+    console.log(eventObject);
+
     var eventItem = $('<li>');
     var eventLink = $('<a href="#" data-rel="back">');
     var eventTitle = $('<h3>').html(eventObject.incident);

@@ -17,6 +17,10 @@
     leaflet.getLocation();
   };
 
+  ui.refresh_click = function () {
+    leaflet.getEvents();
+  };
+
   ui.show_list_click = function () {
     
   };
